@@ -56,8 +56,12 @@ let isIntervalOn = false;
 let playerInterval;
 let lockKey; // Helper to lock key if we already going in that direction
 let playerState = 'normal' // only two options, normal | super. If on super, we eat ghosts ;x
+let playerLives = 3;
 
 // ### Points Values
+const playerScoreElement = document.getElementById("playerScore");
+const playerLivesElement = document.getElementById("playerLives");
+
 let playerPoints = 0;
 const point = 10;
 const superPoint = 100;
@@ -165,19 +169,38 @@ function generateGrid() {
 
 }
 
+function setupLives() {
+    for (let i = 0; i < playerLives; i++) {
+        let liveBlock = document.createElement("div");
+        playerLivesElement.appendChild(liveBlock);
+    }
+}
+
+function removeLive() {
+    if (playerLives > 0) {
+        playerLivesElement.firstElementChild.remove();
+    }
+
+}
+
+function updateScore(points) {
+    playerPoints += points;
+    console.log(playerScoreElement)
+    playerScoreElement.innerHTML = `Score: ${playerPoints}`;
+}
+
+
+
+
+
 // ####
 // GHOST MOVEMENT
-
-// Here ghost ate player!
-function playerGotEaten() {
-    console.log("Player eaten");
-}
 
 // This function moves ghosts ON GRID
 function swapCorrectGhostGridPosition(ghost, moveValue) {
 
     if (grid[ghost.Index + moveValue] == 9) {
-        playerGotEaten();
+        ghostPlayerInteraction(ghost.Index)
     }
     grid[ghost.Index + moveValue] = ghost.gridIndex;
     grid[ghost.Index] = 1;
@@ -199,7 +222,7 @@ function ghostMoveRandom(ghost) {
         pickRandomMove = possibleNextMoves[Math.floor(Math.random() * possibleNextMoves.length)];
     }
 
-    console.log(ghost.Name, possibleNextMoves, "Next move:", pickRandomMove)
+    // console.log(ghost.Name, possibleNextMoves, "Next move:", pickRandomMove)
 
     if (pickRandomMove == "LEFT") {
         ghost.Element.style.left = `${currentGhostLeft - blockSize}px`;
@@ -250,17 +273,17 @@ function ghostsController() {
     //     }, 200)
     // }
 
-    // if (ghostYellow.IntervalOn == false) {
-    //     setInterval(function () {
-    //         ghostMoveRandom(ghostYellow)
-    //     }, 200)
-    // }
+    if (ghostYellow.IntervalOn == false) {
+        setInterval(function () {
+            ghostMoveRandom(ghostYellow)
+        }, 200)
+    }
 
-    // if (ghostPurple.IntervalOn == false) {
-    //     setInterval(function () {
-    //         ghostMoveRandom(ghostPurple)
-    //     }, 200)
-    // }
+    if (ghostPurple.IntervalOn == false) {
+        setInterval(function () {
+            ghostMoveRandom(ghostPurple)
+        }, 200)
+    }
 
 }
 
@@ -271,6 +294,33 @@ function ghostsController() {
 // ####
 // EVERY THING ABOUT USER MOVEMENT!
 // ####
+function ghostPlayerInteraction(ghostIdx) {
+    console.log("player ate or got eaten", ghostIdx)
+    console.log("PlayerState: ", playerState)
+
+
+    if (playerState == "normal") {
+        // losing life or game over
+        removeLive();
+
+        playerLives--;
+        if (playerLives <= 0) {
+            console.log("Game Over!");
+            // stop all
+        }
+        else {
+            console.log(playerLives);
+        }
+    }
+    else if (playerState == "super") {
+        // ghost should go out to base
+        // ghost should stay there for 5 seconds
+        // We should add 200 points to player
+        updateScore(200);
+        console.log(playerPoints)
+    }
+}
+
 // This code adds eventListener that passes key press to moveController()
 document.addEventListener('keydown', (event) => {
     let keyPressed = event.code;
@@ -318,22 +368,31 @@ function clearPlayerInterval() {
 function possibleMoves() {
 
     let possibleNextMoves = [];
+    let possibleBlocks = [1, 2, 3, 10, 11, 12, 13];
 
-    if (grid[playerIndex - 1] == 1 || grid[playerIndex - 1] == 3) possibleNextMoves.push("LEFT");
-    if (grid[playerIndex + 1] == 1 || grid[playerIndex + 1] == 3) possibleNextMoves.push("RIGHT");
-    if (grid[playerIndex - elementsInRow] == 1 || grid[playerIndex - elementsInRow] == 3) possibleNextMoves.push("UP");
-    if (grid[playerIndex + elementsInRow] == 1 || grid[playerIndex + elementsInRow] == 3) possibleNextMoves.push("DOWN");
+    if (possibleBlocks.includes(grid[playerIndex - 1])) possibleNextMoves.push("LEFT");
+    if (possibleBlocks.includes(grid[playerIndex + 1])) possibleNextMoves.push("RIGHT");
+    if (possibleBlocks.includes(grid[playerIndex - elementsInRow])) possibleNextMoves.push("UP");
+    if (possibleBlocks.includes(grid[playerIndex + elementsInRow])) possibleNextMoves.push("DOWN");
 
     return possibleNextMoves;
 }
 
 // Helper function for playerMove(), to make it shorter and cleaner
 function gridSwap(nextIndexDistance) {
+
+    let ghostBlocks = [10, 11, 12, 13];
+
+    if (ghostBlocks.includes(grid[playerIndex + nextIndexDistance])) {
+        ghostPlayerInteraction(grid[playerIndex + nextIndexDistance])
+    }
+
     grid[playerIndex + nextIndexDistance] = 9;
     grid[playerIndex] = 1;
     playerIndex += nextIndexDistance;
 }
 
+// Adds point and changes state if we got super point 
 function gatherPoint() {
 
     let currentPlayerPosition = gridElement.childNodes[playerIndex + 1];
@@ -341,11 +400,19 @@ function gatherPoint() {
     // HERE We are adding points whether we step on normal or super point!
     if (currentPlayerPosition.firstChild) {
         if (currentPlayerPosition.firstChild.classList.contains('path-point')) {
-            playerPoints += point;
+            updateScore(point)
         }
+
+        // Player ate super point!
+        // 6 seconds of power
         if (currentPlayerPosition.firstChild.classList.contains('path-superPoint')) {
-            playerPoints += superPoint;
-            // Here add function that improves PacMan 
+            updateScore(superPoint)
+            player.classList.toggle("player-animation");
+            playerState = "super";
+            setTimeout(function () {
+                player.classList.toggle("player-animation");
+                playerState = "normal";
+            }, 6000)
         }
     }
 
@@ -392,7 +459,6 @@ function playerMove(keyPressed) {
     }
 }
 
-
 // Function that adds constant move (interval) after click and manages player moves
 function moveController(keyPressed) {
 
@@ -410,6 +476,7 @@ function moveController(keyPressed) {
 
 function start() {
     generateGrid();
+    setupLives();
 
     player = document.getElementById("player");
 
