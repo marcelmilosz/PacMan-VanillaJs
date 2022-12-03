@@ -111,5 +111,33 @@ html {
 
     transition: top 200ms, left 200ms;
     transition-timing-function: linear;
+}
 
+.ghost {
+    width: 40px;
+    height: 40px;
+
+    box-sizing: border-box;
+    border-radius: 50px;
+
+    position: absolute;
+
+    transition: top 200ms, left 200ms;
+    transition-timing-function: linear;
+}
+
+.ghost-red {
+    background-color: red;
+}
+
+.ghost-blue {
+    background-color: blue;
+}
+
+.ghost-yellow {
+    background-color: gold;
+}
+
+.ghost-purple {
+    background-color: purple;
 }

@@ -5,6 +5,10 @@
 // 2 - ONLY Path | For ghosts spawn or Path that user went and got a point
 // 3 - SuperPoint
 // 9 - Player 
+// 10 - RED ghost
+// 11 - Blue ghost
+// 12 - Yellow ghost
+// 13 - Purple ghost
 
 
 const grid = [
@@ -16,10 +20,10 @@ const grid = [
     0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
     0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0,
     0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 13, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 2, 2, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 1, 0, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 1, 0,
+    0, 1, 1, 1, 1, 1, 1, 1, 0, 11, 12, 10, 0, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0,
@@ -39,7 +43,7 @@ const elementsInRow = 21;
 
 const blockSize = 41; // this is size of block in px to generate map
 
-// starting values to position blocks!
+// ### Starting values to position blocks!
 let currentTop = 0;
 let currentLeft = 0;
 
@@ -51,6 +55,7 @@ let playerIndex = grid.indexOf(9);
 let isIntervalOn = false;
 let playerInterval;
 let lockKey; // Helper to lock key if we already going in that direction
+let playerState = 'normal' // only two options, normal | super. If on super, we eat ghosts ;x
 
 // ### Points Values
 let playerPoints = 0;
@@ -61,6 +66,31 @@ const INTERVAL_DELAY = 200;
 const directionKeys = ['KeyW', 'KeyS', 'KeyA', 'KeyD'];
 const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
 
+
+// ### Ghosts
+class Ghost {
+    constructor(gridIndex, ghostElement, ghostStartingIndex, ghostLastPosition, ghostIntervalOn, ghostName, otherGhostsIndexes) {
+        this.gridIndex = gridIndex
+        this.Element = ghostElement;
+        this.Index = ghostStartingIndex;
+        this.LastPosition = ghostLastPosition;
+        this.IntervalOn = ghostIntervalOn;
+        this.Name = ghostName;
+        this.OtherGhosts = otherGhostsIndexes;
+    }
+}
+
+let ghostRedElement; // Initialized in start() element 
+let ghostRed; // Initialized in start()
+
+let ghostBlueElement;
+let ghostBlue;
+
+let ghostPurpleElement;
+let ghostPurple;
+
+let ghostYellowElement;
+let ghostYellow;
 
 
 // This function generates grid
@@ -102,6 +132,26 @@ function generateGrid() {
             block.classList.add("player-block");
             block.setAttribute("id", "player")
         }
+        else if (grid[i] == 10) {
+            block.classList.add("ghost");
+            block.classList.add("ghost-red");
+            block.setAttribute("id", "ghostRed")
+        }
+        else if (grid[i] == 11) {
+            block.classList.add("ghost");
+            block.classList.add("ghost-blue");
+            block.setAttribute("id", "ghostBlue")
+        }
+        else if (grid[i] == 12) {
+            block.classList.add("ghost");
+            block.classList.add("ghost-yellow");
+            block.setAttribute("id", "ghostYellow")
+        }
+        else if (grid[i] == 13) {
+            block.classList.add("ghost");
+            block.classList.add("ghost-purple");
+            block.setAttribute("id", "ghostPurple")
+        }
 
 
         block.style.top = `${currentTop}px`;
@@ -115,12 +165,116 @@ function generateGrid() {
 
 }
 
+// ####
+// GHOST MOVEMENT
 
+// Here ghost ate player!
+function playerGotEaten() {
+    console.log("Player eaten");
+}
+
+// This function moves ghosts ON GRID
+function swapCorrectGhostGridPosition(ghost, moveValue) {
+
+    if (grid[ghost.Index + moveValue] == 9) {
+        playerGotEaten();
+    }
+    grid[ghost.Index + moveValue] = ghost.gridIndex;
+    grid[ghost.Index] = 1;
+    ghost.Index += moveValue;
+
+}
+
+// Function for moving single ghost in random possible path
+function ghostMoveRandom(ghost) {
+    let possibleNextMoves = ghostPossibleMoves(ghost);
+    let currentGhostTop = parseInt((ghost.Element.style.top).replace("px", ""));
+    let currentGhostLeft = parseInt((ghost.Element.style.left).replace("px", ""));
+
+    let pickRandomMove = possibleNextMoves[Math.floor(Math.random() * possibleNextMoves.length)];
+
+    // It might happen that both ghost got stuck on base, so keep it to prevent from it
+    if (pickRandomMove === undefined) {
+        ghost.LastPosition = null;
+        pickRandomMove = possibleNextMoves[Math.floor(Math.random() * possibleNextMoves.length)];
+    }
+
+    console.log(ghost.Name, possibleNextMoves, "Next move:", pickRandomMove)
+
+    if (pickRandomMove == "LEFT") {
+        ghost.Element.style.left = `${currentGhostLeft - blockSize}px`;
+        ghost.LastPosition = "LEFT"
+        swapCorrectGhostGridPosition(ghost, -1);
+    }
+    else if (pickRandomMove == "RIGHT") {
+        ghost.Element.style.left = `${currentGhostLeft + blockSize}px`;
+        ghost.LastPosition = "RIGHT"
+        swapCorrectGhostGridPosition(ghost, 1);
+    }
+    else if (pickRandomMove == "UP") {
+        ghost.Element.style.top = `${currentGhostTop - blockSize}px`;
+        ghost.LastPosition = "UP"
+        swapCorrectGhostGridPosition(ghost, -elementsInRow);
+    }
+    else if (pickRandomMove == "DOWN") {
+        ghost.Element.style.top = `${currentGhostTop + blockSize}px`;
+        ghost.LastPosition = "DOWN"
+        swapCorrectGhostGridPosition(ghost, elementsInRow);
+    }
+
+}
+
+// Possible moves for single ghost
+function ghostPossibleMoves(ghost) {
+    let possibleNextMoves = [];
+
+    if (grid[ghost.Index - 1] != 0 && ghost.LastPosition != "RIGHT" && !ghost.OtherGhosts.includes(grid[ghost.Index - 1])) possibleNextMoves.push("LEFT");
+    if (grid[ghost.Index + 1] != 0 && ghost.LastPosition != "LEFT" && !ghost.OtherGhosts.includes(grid[ghost.Index + 1])) possibleNextMoves.push("RIGHT");
+    if (grid[ghost.Index - elementsInRow] != 0 && ghost.LastPosition != "DOWN" && !ghost.OtherGhosts.includes(grid[ghost.Index - elementsInRow])) possibleNextMoves.push("UP");
+    if (grid[ghost.Index + elementsInRow] != 0 && ghost.LastPosition != "UP" && !ghost.OtherGhosts.includes(grid[ghost.Index + elementsInRow])) possibleNextMoves.push("DOWN");
+
+    return possibleNextMoves;
+}
+
+function ghostsController() {
+
+    // if (ghostRed.IntervalOn == false) {
+    //     setInterval(function () {
+    //         ghostMoveRandom(ghostRed)
+    //     }, 200)
+    // }
+
+    // if (ghostBlue.IntervalOn == false) {
+    //     setInterval(function () {
+    //         ghostMoveRandom(ghostBlue)
+    //     }, 200)
+    // }
+
+    // if (ghostYellow.IntervalOn == false) {
+    //     setInterval(function () {
+    //         ghostMoveRandom(ghostYellow)
+    //     }, 200)
+    // }
+
+    // if (ghostPurple.IntervalOn == false) {
+    //     setInterval(function () {
+    //         ghostMoveRandom(ghostPurple)
+    //     }, 200)
+    // }
+
+}
+
+
+
+
+
+// ####
+// EVERY THING ABOUT USER MOVEMENT!
+// ####
 // This code adds eventListener that passes key press to moveController()
 document.addEventListener('keydown', (event) => {
     let keyPressed = event.code;
     let possibleNextMoves = possibleMoves();
-
     // This code checks if we clicked button and the next direction is correct
     // If we are moving and we click etc. Left where there is no wall, then we will clear interval and move there
     // If there is a wall, then interval will remain ON
@@ -147,6 +301,7 @@ document.addEventListener('keydown', (event) => {
     }
 
 }, false);
+
 
 // Helper function to addEventListener that locks key if we are already running in this direction
 function lockCurrentKey(keyPressed) {
@@ -255,7 +410,27 @@ function moveController(keyPressed) {
 
 function start() {
     generateGrid();
+
     player = document.getElementById("player");
+
+    // Ghost Red -- 10 
+    ghostRedElement = document.getElementById("ghostRed");
+    ghostRed = new Ghost(10, ghostRedElement, grid.indexOf(10), null, false, "red", [11, 12, 13]);
+
+    // Ghost Blue - 11
+    ghostBlueElement = document.getElementById("ghostBlue");
+    ghostBlue = new Ghost(11, ghostBlueElement, grid.indexOf(11), null, false, "blue", [10, 12, 13])
+
+    // Ghost Yellow - 12
+    ghostYellowElement = document.getElementById("ghostYellow");
+    ghostYellow = new Ghost(12, ghostYellowElement, grid.indexOf(12), null, false, "yellow", [10, 11, 13])
+
+    // Ghost Purple - 13
+    ghostPurpleElement = document.getElementById("ghostPurple");
+    ghostPurple = new Ghost(13, ghostPurpleElement, grid.indexOf(13), null, false, "purple", [10, 11, 12])
+
+
+    ghostsController();
 }
 
 start();
