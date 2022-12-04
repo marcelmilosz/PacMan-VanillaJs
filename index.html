@@ -5,26 +5,48 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="style.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
         <title> Pacman </title>
+        <script defer src="scripts.js"></script>
     </head>
 
     <body>
-        <div id="playerLives" class="player-lives-container">
+
+        <div id="gameoverBlock" class="gameover-wrapper">
+            <div class="gameover-container">
+                <h1> Game over </h1>
+                <button onclick="playAgain()"> Play Again </button>
+            </div>
         </div>
-        <p id="playerScore"> Score: </p>
+
+
 
         <div class="container">
 
+            <h1 class="title"> PacMan </h1>
+            <div class="topbar">
+                <div class="playerScore-container">
+                    <p id="playerScore"> Score: </p>
+                </div>
+                <div class="topScore-container">
+                    <p id="highestScore"> Highest Score: 0</p>
+                </div>
 
+
+            </div>
 
             <div id="gridId" class="grid">
+
+            </div>
+
+            <div id="playerLives" class="player-lives-container">
 
             </div>
 
         </div>
 
     </body>
-
-    <script src="scripts.js"></script>
 
 </html>

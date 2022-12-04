@@ -10,8 +10,7 @@
 // 12 - Yellow ghost
 // 13 - Purple ghost
 
-
-const grid = [
+let grid = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
@@ -19,15 +18,15 @@ const grid = [
     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
     0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0,
-    0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 13, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 1, 0, 1, 0, 2, 2, 2, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-    0, 1, 1, 1, 1, 1, 1, 1, 0, 11, 12, 10, 0, 1, 1, 1, 1, 1, 1, 1, 0,
+    0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
+    0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 13, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0,
+    0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 2, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 1, 0, 1, 0, 1, 0, 1, 0, 2, 2, 2, 0, 1, 0, 1, 0, 1, 0, 1, 0,
+    0, 1, 1, 1, 1, 1, 1, 1, 0, 12, 11, 10, 0, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
+    0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0,
     0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
-    0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0,
-    0, 1, 3, 0, 1, 1, 1, 1, 0, 1, 9, 1, 0, 1, 1, 1, 1, 0, 3, 1, 0,
+    0, 1, 3, 0, 1, 1, 1, 1, 1, 1, 9, 1, 1, 1, 1, 1, 1, 0, 3, 1, 0,
     0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0,
     0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0,
     0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
@@ -35,6 +34,8 @@ const grid = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     //                         X  X  X
 ] // 21 elements in a row!
+
+const cleanGrid = grid;
 
 // ### GRID VARIABLES
 const grid_width = 840; // Width of map 
@@ -48,15 +49,23 @@ let currentTop = 0;
 let currentLeft = 0;
 
 const gridElement = document.getElementById("gridId");
+const gameoverElement = document.getElementById("gameoverBlock");
 
 // ### Player variables
 let player;
 let playerIndex = grid.indexOf(9);
 let isIntervalOn = false;
 let playerInterval;
+let canPlay = false;
+let firstKeyTouched = false;
+
 let lockKey; // Helper to lock key if we already going in that direction
 let playerState = 'normal' // only two options, normal | super. If on super, we eat ghosts ;x
 let playerLives = 3;
+
+const playerStartingIndex = 325;
+const playerBaseTop = "615px";
+const playerBaseLeft = "410px";
 
 // ### Points Values
 const playerScoreElement = document.getElementById("playerScore");
@@ -69,20 +78,36 @@ const superPoint = 100;
 const INTERVAL_DELAY = 200;
 const directionKeys = ['KeyW', 'KeyS', 'KeyA', 'KeyD'];
 const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+let highestScore;
+let highestScoreElement = document.getElementById("highestScore");
+
+if (!window.localStorage.getItem("highestScore")) {
+    highestScore = 0;
+} else {
+    highestScore = window.localStorage.getItem("highestScore");
+    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
+}
+
 
 
 // ### Ghosts
 class Ghost {
-    constructor(gridIndex, ghostElement, ghostStartingIndex, ghostLastPosition, ghostIntervalOn, ghostName, otherGhostsIndexes) {
+    constructor(gridIndex, ghostElement, ghostStartingIndex, ghostLastPosition, ghostInterval, ghostIntervalOn, ghostName, otherGhostsIndexes, baseGridIndex, baseElementTop, baseElementLeft) {
         this.gridIndex = gridIndex
         this.Element = ghostElement;
         this.Index = ghostStartingIndex;
         this.LastPosition = ghostLastPosition;
+        this.Interval = ghostInterval;
         this.IntervalOn = ghostIntervalOn;
         this.Name = ghostName;
         this.OtherGhosts = otherGhostsIndexes;
+        this.baseGridIndex = baseGridIndex
+        this.baseElementTop = baseElementTop;
+        this.baseElementLeft = baseElementLeft;
     }
 }
+
+let allGhosts = []; // Helper that stores all instances of ghosts
 
 let ghostRedElement; // Initialized in start() element 
 let ghostRed; // Initialized in start()
@@ -96,11 +121,12 @@ let ghostPurple;
 let ghostYellowElement;
 let ghostYellow;
 
-
 // This function generates grid
 function generateGrid() {
 
+    let pathPoint;
     // For loop for every GRID number
+
     for (let i = 0; i < grid.length; i++) {
 
         let block = document.createElement("div");
@@ -111,52 +137,56 @@ function generateGrid() {
             currentLeft = 0;
         }
 
-        // Here we add different classes for blocks as grid shows
-        if (grid[i] == 0) {
-            block.classList.add("block");
-        }
-        else if (grid[i] == 1) {
-            block.classList.add("path-block");
-            // Every path-block has white point
-            let pathPoint = document.createElement("div");
-            pathPoint.classList.add("path-point");
-            block.appendChild(pathPoint);
-        }
-        else if (grid[i] == 2) {
-            block.classList.add("path-block");
-        }
-        else if (grid[i] == 3) {
-            block.classList.add("path-block");
-            // Every path-block has white point
-            let pathPoint = document.createElement("div");
-            pathPoint.classList.add("path-superPoint");
-            block.appendChild(pathPoint);
-        }
-        else if (grid[i] == 9) {
-            block.classList.add("player-block");
-            block.setAttribute("id", "player")
-        }
-        else if (grid[i] == 10) {
-            block.classList.add("ghost");
-            block.classList.add("ghost-red");
-            block.setAttribute("id", "ghostRed")
-        }
-        else if (grid[i] == 11) {
-            block.classList.add("ghost");
-            block.classList.add("ghost-blue");
-            block.setAttribute("id", "ghostBlue")
-        }
-        else if (grid[i] == 12) {
-            block.classList.add("ghost");
-            block.classList.add("ghost-yellow");
-            block.setAttribute("id", "ghostYellow")
-        }
-        else if (grid[i] == 13) {
-            block.classList.add("ghost");
-            block.classList.add("ghost-purple");
-            block.setAttribute("id", "ghostPurple")
-        }
+        switch (grid[i]) {
+            case 0:
+                block.classList.add("block");
+                break;
+            case 1:
+                block.classList.add("path-block");
+                // Every path-block has white point
+                pathPoint = document.createElement("div");
+                pathPoint.classList.add("path-point");
+                block.appendChild(pathPoint);
+                break;
+            case 2:
+                block.classList.add("path-block");
+                break;
+            case 3:
+                block.classList.add("path-block");
+                // Every path-block has white point
+                pathPoint = document.createElement("div");
+                pathPoint.classList.add("path-superPoint");
+                block.appendChild(pathPoint);
+                break;
+            case 9:
+                block.classList.add("player-block");
+                block.setAttribute("id", "player");
+                break;
+            case 10:
+                block.classList.add("ghost");
+                block.classList.add("ghost-red");
+                block.setAttribute("id", "ghostRed")
+                break;
+            case 11:
+                block.classList.add("ghost");
+                block.classList.add("ghost-blue");
+                block.setAttribute("id", "ghostBlue")
+                break;
+            case 12:
+                block.classList.add("ghost");
+                block.classList.add("ghost-yellow");
+                block.setAttribute("id", "ghostYellow")
+                break;
+            case 13:
+                block.classList.add("ghost");
+                block.classList.add("ghost-purple");
+                block.setAttribute("id", "ghostPurple")
+                break;
 
+            default:
+                console.log("Something went wrong!")
+                return false;
+        }
 
         block.style.top = `${currentTop}px`;
         block.style.left = `${currentLeft}px`;
@@ -164,11 +194,33 @@ function generateGrid() {
         gridElement.appendChild(block);
 
         currentLeft += blockSize;
-
     }
+
+    return true;
 
 }
 
+function displayGrid() {
+    let chunk = [];
+
+    for (let i = 0; i < grid.length; i++) {
+
+        if (i % (21) == 0 && i > 0) {
+            console.log(chunk.join(', '))
+            chunk = []
+        }
+
+        chunk.push(grid[i])
+
+        if (i == grid.length - 1) {
+            console.log(chunk.join(', '))
+        }
+    }
+
+    console.log("===")
+}
+
+// This setups lives in html
 function setupLives() {
     for (let i = 0; i < playerLives; i++) {
         let liveBlock = document.createElement("div");
@@ -176,16 +228,17 @@ function setupLives() {
     }
 }
 
+// This removes childs (lives) from parent element 
 function removeLive() {
-    if (playerLives > 0) {
+    if (playerLives >= 0) {
         playerLivesElement.firstElementChild.remove();
     }
 
 }
 
+// This updates score on board 
 function updateScore(points) {
     playerPoints += points;
-    console.log(playerScoreElement)
     playerScoreElement.innerHTML = `Score: ${playerPoints}`;
 }
 
@@ -195,16 +248,56 @@ function updateScore(points) {
 
 // ####
 // GHOST MOVEMENT
+// ###
+
+function clearAllGhostsInterval() {
+    for (let i = 0; i < allGhosts.length; i++) {
+        clearGhostInterval(allGhosts[i])
+    }
+}
+
+function clearGhostInterval(ghost) {
+
+    if (ghost.IntervalOn == true) {
+        ghost.Interval = clearInterval(ghost.Interval);
+        ghost.Interval = null;
+        ghost.IntervalOn = false;
+    }
+
+}
+
+function startGhostInterval(ghost) {
+    if (ghost.IntervalOn == false) {
+        ghost.Interval = setInterval(function () {
+            ghostMoveRandom(ghost)
+        }, 200)
+        ghost.IntervalOn = true;
+    }
+}
+
+function findGhostByIdx(ghostIdx) {
+    for (let i = 0; i < allGhosts.length; i++) {
+        if (allGhosts[i].gridIndex == ghostIdx) {
+            return i;
+        }
+    }
+}
 
 // This function moves ghosts ON GRID
 function swapCorrectGhostGridPosition(ghost, moveValue) {
 
     if (grid[ghost.Index + moveValue] == 9) {
-        ghostPlayerInteraction(ghost.Index)
+        grid[ghost.Index + moveValue] = ghost.gridIndex;
+        grid[ghost.Index] = 1;
+        ghost.Index += moveValue;
+        ghostPlayerInteraction(ghost.gridIndex)
     }
-    grid[ghost.Index + moveValue] = ghost.gridIndex;
-    grid[ghost.Index] = 1;
-    ghost.Index += moveValue;
+    else {
+        grid[ghost.Index + moveValue] = ghost.gridIndex;
+        grid[ghost.Index] = 1;
+        ghost.Index += moveValue;
+    }
+
 
 }
 
@@ -251,104 +344,227 @@ function ghostMoveRandom(ghost) {
 function ghostPossibleMoves(ghost) {
     let possibleNextMoves = [];
 
-    if (grid[ghost.Index - 1] != 0 && ghost.LastPosition != "RIGHT" && !ghost.OtherGhosts.includes(grid[ghost.Index - 1])) possibleNextMoves.push("LEFT");
-    if (grid[ghost.Index + 1] != 0 && ghost.LastPosition != "LEFT" && !ghost.OtherGhosts.includes(grid[ghost.Index + 1])) possibleNextMoves.push("RIGHT");
-    if (grid[ghost.Index - elementsInRow] != 0 && ghost.LastPosition != "DOWN" && !ghost.OtherGhosts.includes(grid[ghost.Index - elementsInRow])) possibleNextMoves.push("UP");
-    if (grid[ghost.Index + elementsInRow] != 0 && ghost.LastPosition != "UP" && !ghost.OtherGhosts.includes(grid[ghost.Index + elementsInRow])) possibleNextMoves.push("DOWN");
+    // If ghost step on player
+    if (grid[ghost.Index - 1] == 9 || grid[ghost.Index + 1] == 9 || grid[ghost.Index - elementsInRow] == 9 || grid[ghost.Index + elementsInRow] == 9) {
+        ghostPlayerInteraction(ghost.gridIndex)
+    }
+    else {
+        if (grid[ghost.Index - 1] != 0 && ghost.LastPosition != "RIGHT" && !ghost.OtherGhosts.includes(grid[ghost.Index - 1])) possibleNextMoves.push("LEFT");
+        if (grid[ghost.Index + 1] != 0 && ghost.LastPosition != "LEFT" && !ghost.OtherGhosts.includes(grid[ghost.Index + 1])) possibleNextMoves.push("RIGHT");
+        if (grid[ghost.Index - elementsInRow] != 0 && ghost.LastPosition != "DOWN" && !ghost.OtherGhosts.includes(grid[ghost.Index - elementsInRow])) possibleNextMoves.push("UP");
+        if (grid[ghost.Index + elementsInRow] != 0 && ghost.LastPosition != "UP" && !ghost.OtherGhosts.includes(grid[ghost.Index + elementsInRow])) possibleNextMoves.push("DOWN");
+
+    }
 
     return possibleNextMoves;
 }
 
 function ghostsController() {
 
-    // if (ghostRed.IntervalOn == false) {
-    //     setInterval(function () {
-    //         ghostMoveRandom(ghostRed)
-    //     }, 200)
-    // }
+    for (let i = 0; i < allGhosts.length; i++) {
+        let ghost = allGhosts[i];
+        if (ghost.IntervalOn == false) {
+            ghost.Interval = setInterval(function () {
+                ghostMoveRandom(ghost)
+            }, 200)
+            ghost.IntervalOn = true;
+        }
 
-    // if (ghostBlue.IntervalOn == false) {
-    //     setInterval(function () {
-    //         ghostMoveRandom(ghostBlue)
-    //     }, 200)
-    // }
-
-    if (ghostYellow.IntervalOn == false) {
-        setInterval(function () {
-            ghostMoveRandom(ghostYellow)
-        }, 200)
-    }
-
-    if (ghostPurple.IntervalOn == false) {
-        setInterval(function () {
-            ghostMoveRandom(ghostPurple)
-        }, 200)
     }
 
 }
-
-
-
 
 
 // ####
 // EVERY THING ABOUT USER MOVEMENT!
 // ####
-function ghostPlayerInteraction(ghostIdx) {
-    console.log("player ate or got eaten", ghostIdx)
-    console.log("PlayerState: ", playerState)
+function playAgain() {
+    document.location.reload()
+}
 
+function GameOver() {
+    canPlay = false;
+
+    clearAllGhostsInterval();
+    clearPlayerInterval();
+
+    restartAllGhostsPositions();
+    restartPlayerPosition();
+
+
+    // Save score if we have new max!
+
+    if (playerPoints > highestScore) {
+        window.localStorage.setItem("highestScore", playerPoints)
+        highestScore = window.localStorage.getItem("highestScore");
+    }
+
+    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
+
+    gameoverElement.style.display = "block";
+
+}
+
+// Restart all after losing life
+function gotEatenRestartPositions() {
+    clearPlayerInterval();
+    clearAllGhostsInterval();
+
+    setTimeout(function () {
+        // Sooo.. this function below has to be called two times and it gives me the result i need
+        // For now i dont understand why it needs to be called two times .. 
+        restartAllGhostsPositions();
+        restartAllGhostsPositions();
+
+        restartPlayerPosition();
+    }, 400)
+
+
+
+    setTimeout(function () {
+        ghostsController();
+    }, 1000)
+
+
+    // start();
+}
+
+// restart all ghosts positions to base
+function restartAllGhostsPositions() {
+    for (let i = 0; i < allGhosts.length; i++) {
+
+        let ghost = allGhosts[i];
+        // ghost.Index = ghost.baseGridIndex;
+        clearGhostInterval(ghost)
+        ghost.LastPosition = "";
+        ghost.Element.style.top = ghost.baseElementTop;
+        ghost.Element.style.left = ghost.baseElementLeft;
+
+
+        grid[ghost.Index] = 1;
+        grid[ghost.baseGridIndex] = ghost.gridIndex;
+        ghost.Index = grid.indexOf(ghost.gridIndex);
+        ghost.LastPosition = "";
+
+    }
+
+    // displayGrid()
+}
+
+function restartGhostPosition(hittedGhost) {
+
+
+    clearGhostInterval(hittedGhost)
+
+    hittedGhost.LastPosition = "";
+    hittedGhost.Element.style.top = hittedGhost.baseElementTop;
+    hittedGhost.Element.style.left = hittedGhost.baseElementLeft;
+
+    grid[hittedGhost.Index] = 1;
+    grid[hittedGhost.baseGridIndex] = hittedGhost.gridIndex;
+    hittedGhost.Index = grid.indexOf(hittedGhost.gridIndex);
+
+}
+
+function restartPlayerPosition() {
+    player.style.top = playerBaseTop;
+    player.style.left = playerBaseLeft;
+
+    lockKey = "";
+    grid[playerIndex] = 1;
+    grid[playerStartingIndex] = 9;
+    playerIndex = playerStartingIndex;
+}
+
+function ghostPlayerInteraction(ghostIdx) {
+
+    let ghostObjIdx = findGhostByIdx(ghostIdx);
+    let hittedGhost = allGhosts[ghostObjIdx];
 
     if (playerState == "normal") {
+
         // losing life or game over
+        playerLives--;
         removeLive();
 
-        playerLives--;
         if (playerLives <= 0) {
-            console.log("Game Over!");
-            // stop all
+            GameOver();
         }
         else {
-            console.log(playerLives);
+            gotEatenRestartPositions();
         }
     }
     else if (playerState == "super") {
-        // ghost should go out to base
-        // ghost should stay there for 5 seconds
+
         // We should add 200 points to player
         updateScore(200);
-        console.log(playerPoints)
+
+        // clear ghost interval
+        setTimeout(function () {
+            clearGhostInterval(hittedGhost);
+
+            // Fade out animation
+            hittedGhost.Element.classList.add("ghost-fadeOut");
+        }, 200)
+
+
+        // Hide him and put him in base
+        setTimeout(function () {
+            restartGhostPosition(hittedGhost)
+        }, 1000)
+
+
+        // Show him and give him a 5 second stay in base
+        setTimeout(function () {
+            hittedGhost.Element.classList.remove("ghost-fadeOut");
+            hittedGhost.Element.classList.add("ghost-fadeIn");
+        }, 1700)
+
+        setTimeout(function () {
+            startGhostInterval(hittedGhost);
+            hittedGhost.Element.classList.remove("ghost-fadeIn");
+        }, 5000)
     }
 }
 
 // This code adds eventListener that passes key press to moveController()
 document.addEventListener('keydown', (event) => {
-    let keyPressed = event.code;
-    let possibleNextMoves = possibleMoves();
-    // This code checks if we clicked button and the next direction is correct
-    // If we are moving and we click etc. Left where there is no wall, then we will clear interval and move there
-    // If there is a wall, then interval will remain ON
 
-    if (keyPressed == "KeyW" && possibleNextMoves.includes('UP') && lockKey != keyPressed) {
-        clearPlayerInterval();
-        lockCurrentKey(keyPressed);
-        moveController(keyPressed);
+    if (firstKeyTouched === false) {
+        activateGhostsAfterFirstKeyPress()
+        firstKeyTouched = true;
     }
-    else if (keyPressed == "KeyS" && possibleNextMoves.includes('DOWN') && lockKey != keyPressed) {
-        clearPlayerInterval();
-        lockCurrentKey(keyPressed);
-        moveController(keyPressed);
+
+
+    if (playerLives > 0 && canPlay) {
+        let keyPressed = event.code;
+        let possibleNextMoves = possibleMoves();
+        // This code checks if we clicked button and the next direction is correct
+        // If we are moving and we click etc. Left where there is no wall, then we will clear interval and move there
+        // If there is a wall, then interval will remain ON
+
+        if (keyPressed == "KeyW" && possibleNextMoves.includes('UP') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+        }
+        else if (keyPressed == "KeyS" && possibleNextMoves.includes('DOWN') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+        }
+        else if (keyPressed == "KeyA" && possibleNextMoves.includes('LEFT') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+        }
+        else if (keyPressed == "KeyD" && possibleNextMoves.includes('RIGHT') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+        }
     }
-    else if (keyPressed == "KeyA" && possibleNextMoves.includes('LEFT') && lockKey != keyPressed) {
-        clearPlayerInterval();
-        lockCurrentKey(keyPressed);
-        moveController(keyPressed);
-    }
-    else if (keyPressed == "KeyD" && possibleNextMoves.includes('RIGHT') && lockKey != keyPressed) {
-        clearPlayerInterval();
-        lockCurrentKey(keyPressed);
-        moveController(keyPressed);
-    }
+
 
 }, false);
 
@@ -385,11 +601,17 @@ function gridSwap(nextIndexDistance) {
 
     if (ghostBlocks.includes(grid[playerIndex + nextIndexDistance])) {
         ghostPlayerInteraction(grid[playerIndex + nextIndexDistance])
+
+        grid[playerIndex] = 1;
+        grid[playerIndex + nextIndexDistance] = 9;
+        playerIndex += nextIndexDistance;
+    }
+    else {
+        grid[playerIndex + nextIndexDistance] = 9;
+        grid[playerIndex] = 1;
+        playerIndex += nextIndexDistance;
     }
 
-    grid[playerIndex + nextIndexDistance] = 9;
-    grid[playerIndex] = 1;
-    playerIndex += nextIndexDistance;
 }
 
 // Adds point and changes state if we got super point 
@@ -407,12 +629,23 @@ function gatherPoint() {
         // 6 seconds of power
         if (currentPlayerPosition.firstChild.classList.contains('path-superPoint')) {
             updateScore(superPoint)
-            player.classList.toggle("player-animation");
             playerState = "super";
-            setTimeout(function () {
-                player.classList.toggle("player-animation");
-                playerState = "normal";
-            }, 6000)
+
+            // if we already have super point 
+            // WORK ON IT NOW
+            // if (player.classList.contains("player-animation")) {
+            //     setTimeout(function () {
+            //         player.classList.toggle("player-animation");
+            //         playerState = "normal";
+            //     }, 6000)
+            // }
+            // else {
+            //     player.classList.toggle("player-animation");
+            //     setTimeout(function () {
+            //         player.classList.toggle("player-animation");
+            //         playerState = "normal";
+            //     }, 6000)
+            // }
         }
     }
 
@@ -474,34 +707,50 @@ function moveController(keyPressed) {
 
 }
 
+function activateGhostsAfterFirstKeyPress() {
+    setTimeout(function () {
+        ghostsController();
+    }, 200)
+}
+
 function start() {
+
+    grid = cleanGrid;
     generateGrid();
-    setupLives();
+
+    // Ghost Red -- 10 -- starting Position on grid: 242
+    ghostRedElement = document.getElementById("ghostRed");
+    ghostRed = new Ghost(10, ghostRedElement, grid.indexOf(10), null, null, false, "red", [11, 12, 13], grid.indexOf(10), ghostRedElement.style.top, ghostRedElement.style.left)
+
+    // Ghost Blue - 11 -- starting Position on grid: 240
+    ghostBlueElement = document.getElementById("ghostBlue");
+    ghostBlue = new Ghost(11, ghostBlueElement, grid.indexOf(11), null, null, false, "blue", [10, 12, 13], grid.indexOf(11), ghostBlueElement.style.top, ghostBlueElement.style.left)
+
+    // // Ghost Yellow - 12 -- starting Position on grid: 241
+    ghostYellowElement = document.getElementById("ghostYellow");
+    ghostYellow = new Ghost(12, ghostYellowElement, grid.indexOf(12), null, null, false, "yellow", [10, 11, 13], grid.indexOf(12), ghostYellowElement.style.top, ghostYellowElement.style.left)
+
+    // // Ghost Purple - 13 -- starting Position on grid: 178
+    ghostPurpleElement = document.getElementById("ghostPurple");
+    ghostPurple = new Ghost(13, ghostPurpleElement, grid.indexOf(13), null, null, false, "purple", [10, 11, 12], grid.indexOf(13), ghostPurpleElement.style.top, ghostPurpleElement.style.left)
+
+
+    allGhosts = [ghostRed, ghostBlue, ghostYellow, ghostPurple]
+
+    playerIndex = playerStartingIndex;
 
     player = document.getElementById("player");
-
-    // Ghost Red -- 10 
-    ghostRedElement = document.getElementById("ghostRed");
-    ghostRed = new Ghost(10, ghostRedElement, grid.indexOf(10), null, false, "red", [11, 12, 13]);
-
-    // Ghost Blue - 11
-    ghostBlueElement = document.getElementById("ghostBlue");
-    ghostBlue = new Ghost(11, ghostBlueElement, grid.indexOf(11), null, false, "blue", [10, 12, 13])
-
-    // Ghost Yellow - 12
-    ghostYellowElement = document.getElementById("ghostYellow");
-    ghostYellow = new Ghost(12, ghostYellowElement, grid.indexOf(12), null, false, "yellow", [10, 11, 13])
-
-    // Ghost Purple - 13
-    ghostPurpleElement = document.getElementById("ghostPurple");
-    ghostPurple = new Ghost(13, ghostPurpleElement, grid.indexOf(13), null, false, "purple", [10, 11, 12])
+    player.style.top = playerBaseTop;
+    player.style.left = playerBaseLeft;
 
 
-    ghostsController();
+    canPlay = true;
+
+    setupLives();
+
 }
 
 start();
-
 
 
 
