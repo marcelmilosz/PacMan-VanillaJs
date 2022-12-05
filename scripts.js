@@ -1,5 +1,5 @@
 
-// Grid number types 
+// Grid Infomraiton
 // 0 - wall 
 // 1 - empty | path for pacman and normal points
 // 2 - ONLY Path | For ghosts spawn or Path that user went and got a point
@@ -32,7 +32,6 @@ let grid = [
     0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    //                         X  X  X
 ] // 21 elements in a row!
 
 const cleanGrid = grid;
@@ -67,7 +66,7 @@ const playerStartingIndex = 325;
 const playerBaseTop = "615px";
 const playerBaseLeft = "410px";
 
-// ### Points Values
+// ### All about Player Score 
 const playerScoreElement = document.getElementById("playerScore");
 const playerLivesElement = document.getElementById("playerLives");
 
@@ -85,25 +84,26 @@ let superPointInterval;
 const INTERVAL_DELAY = 200;
 const directionKeys = ['KeyW', 'KeyS', 'KeyA', 'KeyD'];
 const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
+
 let highestScore;
 let highestScoreElement = document.getElementById("highestScore");
 let lastLevelScoredPoints;
 
+// If we got to next level, then we read from storage points (because we refreshed page!)
 if (window.localStorage.getItem("lastScore")) {
     playerPoints = parseInt(window.localStorage.getItem("lastScore"));
     playerScoreElement.innerHTML = `Score: ${playerPoints}`;
 }
 
-if (!window.localStorage.getItem("highestScore")) {
-    highestScore = 0;
-} else {
+// Setting up the highest score on board from local storage
+if (!window.localStorage.getItem("highestScore")) highestScore = 0;
+else {
     highestScore = window.localStorage.getItem("highestScore");
     highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
 }
 
 
-
-// ### Ghosts
+// ### Ghost class
 class Ghost {
     constructor(gridIndex, ghostElement, ghostStartingIndex, ghostLastPosition, ghostInterval, ghostIntervalOn, ghostName, otherGhostsIndexes, baseGridIndex, baseElementTop, baseElementLeft) {
         this.gridIndex = gridIndex
@@ -122,18 +122,10 @@ class Ghost {
 
 let allGhosts = []; // Helper that stores all instances of ghosts
 
-let ghostRedElement; // Initialized in start() element 
-let ghostRed; // Initialized in start()
 
-let ghostBlueElement;
-let ghostBlue;
-
-let ghostPurpleElement;
-let ghostPurple;
-
-let ghostYellowElement;
-let ghostYellow;
-
+// ####
+// Starting functions
+// ####
 // This function generates grid
 function generateGrid() {
 
@@ -215,6 +207,7 @@ function generateGrid() {
 
 }
 
+// Helper function that displays pretty our gird (to analyze if all stuff moves correctly)
 function displayGrid() {
     let chunk = [];
 
@@ -260,15 +253,209 @@ function updateScore(points) {
 
 
 // ####
+// Game Functionality
+// ####
+// Resets game after button click 
+function playAgain() {
+    document.location.reload() // Yeah.. that was the quickes way (not the best but..)
+}
+
+function GameOver() {
+    canPlay = false;
+
+    clearAllGhostsInterval();
+    clearPlayerInterval();
+
+    restartAllGhostsPositions();
+    restartPlayerPosition();
+
+
+    // Save score if we have new max!
+
+    if (playerPoints > highestScore) {
+        window.localStorage.setItem("highestScore", playerPoints)
+        highestScore = window.localStorage.getItem("highestScore");
+    }
+
+    window.localStorage.setItem("lastScore", 0);
+
+    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
+
+    gameoverElement.style.display = "block";
+
+}
+
+function playerWonRestartMap() {
+
+    console.log("User won!");
+
+    canPlay = false;
+
+    clearAllGhostsInterval();
+    clearPlayerInterval();
+
+    restartAllGhostsPositions();
+    restartPlayerPosition();
+
+    // Flash board for 3 seconds 
+    gridElement.classList.add("boardFlash");
+
+    window.localStorage.setItem("lastScore", playerPoints);
+
+    if (playerPoints > highestScore) {
+        window.localStorage.setItem("highestScore", playerPoints)
+        highestScore = window.localStorage.getItem("highestScore");
+    }
+
+    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
+
+    setTimeout(function () {
+        document.location.reload();
+    }, 3000)
+
+
+}
+
+
+
+// ####
+// GHOST -- PLAYER Interactions
+// #### 
+
+// Restart all after losing life
+function gotEatenRestartPositions() {
+    clearPlayerInterval();
+    clearAllGhostsInterval();
+
+    // flashy animation
+    gridElement.classList.add("gotEatenFlash");
+
+    canPlay = false;
+
+    setTimeout(function () {
+        // Sooo.. this function below has to be called two times and it gives me the result i need
+        // For now i dont understand why it needs to be called two times .. 
+        restartAllGhostsPositions();
+        restartAllGhostsPositions();
+
+        restartPlayerPosition();
+
+        canPlay = true;
+    }, 2000)
+
+
+    setTimeout(function () {
+        ghostsController();
+        gridElement.classList.remove("gotEatenFlash");
+    }, 2200)
+
+
+    // start();
+}
+
+function ghostPlayerInteraction(ghostIdx) {
+
+    let ghostObjIdx = findGhostByIdx(ghostIdx);
+    let hittedGhost = allGhosts[ghostObjIdx];
+
+    if (playerState == "normal") {
+
+        // losing life or game over
+        playerLives--;
+        removeLive();
+
+        if (playerLives <= 0) {
+            GameOver();
+        }
+        else {
+            gotEatenRestartPositions();
+        }
+    }
+    else if (playerState == "super") {
+
+        // We should add 200 points to player
+        updateScore(200);
+
+        // clear ghost interval
+        setTimeout(function () {
+            clearGhostInterval(hittedGhost);
+
+            // Fade out animation
+            hittedGhost.Element.classList.add("ghost-fadeOut");
+        }, 200)
+
+
+        // Hide him and put him in base
+        setTimeout(function () {
+            restartGhostPosition(hittedGhost)
+        }, 1000)
+
+
+        // Show him and give him a 5 second stay in base
+        setTimeout(function () {
+            hittedGhost.Element.classList.remove("ghost-fadeOut");
+            hittedGhost.Element.classList.add("ghost-fadeIn");
+        }, 1700)
+
+        setTimeout(function () {
+            startGhostInterval(hittedGhost);
+            hittedGhost.Element.classList.remove("ghost-fadeIn");
+        }, 5000)
+    }
+}
+
+
+
+// ####
 // GHOST MOVEMENT
 // ###
 
+// restart all ghosts positions to base
+function restartAllGhostsPositions() {
+    for (let i = 0; i < allGhosts.length; i++) {
+
+        let ghost = allGhosts[i];
+        // ghost.Index = ghost.baseGridIndex;
+        clearGhostInterval(ghost)
+        ghost.LastPosition = "";
+        ghost.Element.style.top = ghost.baseElementTop;
+        ghost.Element.style.left = ghost.baseElementLeft;
+
+
+        grid[ghost.Index] = 1;
+        grid[ghost.baseGridIndex] = ghost.gridIndex;
+        ghost.Index = grid.indexOf(ghost.gridIndex);
+        ghost.LastPosition = "";
+
+    }
+
+    // displayGrid()
+}
+
+// Restart single ghost position -- to its base position
+function restartGhostPosition(hittedGhost) {
+
+
+    clearGhostInterval(hittedGhost)
+
+    hittedGhost.LastPosition = "";
+    hittedGhost.Element.style.top = hittedGhost.baseElementTop;
+    hittedGhost.Element.style.left = hittedGhost.baseElementLeft;
+
+    grid[hittedGhost.Index] = 1;
+    grid[hittedGhost.baseGridIndex] = hittedGhost.gridIndex;
+    hittedGhost.Index = grid.indexOf(hittedGhost.gridIndex);
+
+}
+
+// Stop all ghosts and clears their interval
 function clearAllGhostsInterval() {
     for (let i = 0; i < allGhosts.length; i++) {
         clearGhostInterval(allGhosts[i])
     }
 }
 
+// Stops one ghosts (that was hitted) and clears its interval
 function clearGhostInterval(ghost) {
 
     if (ghost.IntervalOn == true) {
@@ -279,6 +466,7 @@ function clearGhostInterval(ghost) {
 
 }
 
+// Starts one ghost interval
 function startGhostInterval(ghost) {
     if (ghost.IntervalOn == false) {
         ghost.Interval = setInterval(function () {
@@ -288,6 +476,7 @@ function startGhostInterval(ghost) {
     }
 }
 
+// Helper that finds ghost in variable allGhosts by ghost index
 function findGhostByIdx(ghostIdx) {
     for (let i = 0; i < allGhosts.length; i++) {
         if (allGhosts[i].gridIndex == ghostIdx) {
@@ -372,6 +561,7 @@ function ghostPossibleMoves(ghost) {
     return possibleNextMoves;
 }
 
+// All ghosts movement starts here
 function ghostsController() {
 
     for (let i = 0; i < allGhosts.length; i++) {
@@ -388,135 +578,12 @@ function ghostsController() {
 }
 
 
+
 // ####
-// EVERY THING ABOUT USER MOVEMENT!
+// USER MOVEMENT
 // ####
-function playAgain() {
-    document.location.reload()
-}
 
-function GameOver() {
-    canPlay = false;
-
-    clearAllGhostsInterval();
-    clearPlayerInterval();
-
-    restartAllGhostsPositions();
-    restartPlayerPosition();
-
-
-    // Save score if we have new max!
-
-    if (playerPoints > highestScore) {
-        window.localStorage.setItem("highestScore", playerPoints)
-        highestScore = window.localStorage.getItem("highestScore");
-    }
-
-    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
-
-    gameoverElement.style.display = "block";
-
-}
-
-function playerWonRestartMap() {
-
-    console.log("User won!");
-
-    canPlay = false;
-
-    clearAllGhostsInterval();
-    clearPlayerInterval();
-
-    restartAllGhostsPositions();
-    restartPlayerPosition();
-
-    // Flash board for 3 seconds 
-    gridElement.classList.add("boardFlash");
-
-    window.localStorage.setItem("lastScore", playerPoints);
-
-    if (playerPoints > highestScore) {
-        window.localStorage.setItem("highestScore", playerPoints)
-        highestScore = window.localStorage.getItem("highestScore");
-    }
-
-    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
-
-    setTimeout(function () {
-        document.location.reload();
-    }, 3000)
-
-
-}
-
-// Restart all after losing life
-function gotEatenRestartPositions() {
-    clearPlayerInterval();
-    clearAllGhostsInterval();
-
-    // flashy animation
-    gridElement.classList.add("gotEatenFlash");
-
-    canPlay = false;
-
-    setTimeout(function () {
-        // Sooo.. this function below has to be called two times and it gives me the result i need
-        // For now i dont understand why it needs to be called two times .. 
-        restartAllGhostsPositions();
-        restartAllGhostsPositions();
-
-        restartPlayerPosition();
-
-        canPlay = true;
-    }, 2000)
-
-
-    setTimeout(function () {
-        ghostsController();
-        gridElement.classList.remove("gotEatenFlash");
-    }, 2200)
-
-
-    // start();
-}
-
-// restart all ghosts positions to base
-function restartAllGhostsPositions() {
-    for (let i = 0; i < allGhosts.length; i++) {
-
-        let ghost = allGhosts[i];
-        // ghost.Index = ghost.baseGridIndex;
-        clearGhostInterval(ghost)
-        ghost.LastPosition = "";
-        ghost.Element.style.top = ghost.baseElementTop;
-        ghost.Element.style.left = ghost.baseElementLeft;
-
-
-        grid[ghost.Index] = 1;
-        grid[ghost.baseGridIndex] = ghost.gridIndex;
-        ghost.Index = grid.indexOf(ghost.gridIndex);
-        ghost.LastPosition = "";
-
-    }
-
-    // displayGrid()
-}
-
-function restartGhostPosition(hittedGhost) {
-
-
-    clearGhostInterval(hittedGhost)
-
-    hittedGhost.LastPosition = "";
-    hittedGhost.Element.style.top = hittedGhost.baseElementTop;
-    hittedGhost.Element.style.left = hittedGhost.baseElementLeft;
-
-    grid[hittedGhost.Index] = 1;
-    grid[hittedGhost.baseGridIndex] = hittedGhost.gridIndex;
-    hittedGhost.Index = grid.indexOf(hittedGhost.gridIndex);
-
-}
-
+// Restart player position to its base position
 function restartPlayerPosition() {
     player.style.top = playerBaseTop;
     player.style.left = playerBaseLeft;
@@ -527,107 +594,10 @@ function restartPlayerPosition() {
     playerIndex = playerStartingIndex;
 }
 
-function ghostPlayerInteraction(ghostIdx) {
-
-    let ghostObjIdx = findGhostByIdx(ghostIdx);
-    let hittedGhost = allGhosts[ghostObjIdx];
-
-    if (playerState == "normal") {
-
-        // losing life or game over
-        playerLives--;
-        removeLive();
-
-        if (playerLives <= 0) {
-            GameOver();
-        }
-        else {
-            gotEatenRestartPositions();
-        }
-    }
-    else if (playerState == "super") {
-
-        // We should add 200 points to player
-        updateScore(200);
-
-        // clear ghost interval
-        setTimeout(function () {
-            clearGhostInterval(hittedGhost);
-
-            // Fade out animation
-            hittedGhost.Element.classList.add("ghost-fadeOut");
-        }, 200)
-
-
-        // Hide him and put him in base
-        setTimeout(function () {
-            restartGhostPosition(hittedGhost)
-        }, 1000)
-
-
-        // Show him and give him a 5 second stay in base
-        setTimeout(function () {
-            hittedGhost.Element.classList.remove("ghost-fadeOut");
-            hittedGhost.Element.classList.add("ghost-fadeIn");
-        }, 1700)
-
-        setTimeout(function () {
-            startGhostInterval(hittedGhost);
-            hittedGhost.Element.classList.remove("ghost-fadeIn");
-        }, 5000)
-    }
-}
-
+// Helper that rotates Pacman image when we press key in some direction
 function rotatePacman(deg) {
     player.style.transform = `rotate(${deg}deg)`;
 }
-
-// This code adds eventListener that passes key press to moveController()
-document.addEventListener('keydown', (event) => {
-
-    if (firstKeyTouched === false) {
-        activateGhostsAfterFirstKeyPress()
-        firstKeyTouched = true;
-    }
-
-
-    if (playerLives > 0 && canPlay) {
-        let keyPressed = event.code;
-        let possibleNextMoves = possibleMoves();
-
-        // This code checks if we clicked button and the next direction is correct
-        // If we are moving and we click etc. Left where there is no wall, then we will clear interval and move there
-        // If there is a wall, then interval will remain ON
-
-        if (keyPressed == "KeyW" && possibleNextMoves.includes('UP') && lockKey != keyPressed) {
-            clearPlayerInterval();
-            lockCurrentKey(keyPressed);
-            moveController(keyPressed);
-            rotatePacman(270)
-        }
-        else if (keyPressed == "KeyS" && possibleNextMoves.includes('DOWN') && lockKey != keyPressed) {
-            clearPlayerInterval();
-            lockCurrentKey(keyPressed);
-            moveController(keyPressed);
-            rotatePacman(90)
-        }
-        else if (keyPressed == "KeyA" && possibleNextMoves.includes('LEFT') && lockKey != keyPressed) {
-            clearPlayerInterval();
-            lockCurrentKey(keyPressed);
-            moveController(keyPressed);
-            rotatePacman(180)
-        }
-        else if (keyPressed == "KeyD" && possibleNextMoves.includes('RIGHT') && lockKey != keyPressed) {
-            clearPlayerInterval();
-            lockCurrentKey(keyPressed);
-            moveController(keyPressed);
-            rotatePacman(0)
-        }
-    }
-
-
-}, false);
-
 
 // Helper function to addEventListener that locks key if we are already running in this direction
 function lockCurrentKey(keyPressed) {
@@ -777,11 +747,58 @@ function moveController(keyPressed) {
 
 }
 
+// Function to wait for first input from user to start the game (It activate all ghosts)
 function activateGhostsAfterFirstKeyPress() {
     setTimeout(function () {
         ghostsController();
     }, 200)
 }
+
+// This code adds eventListener that passes key press to moveController()
+document.addEventListener('keydown', (event) => {
+
+    if (firstKeyTouched === false) {
+        activateGhostsAfterFirstKeyPress()
+        firstKeyTouched = true;
+    }
+
+
+    if (playerLives > 0 && canPlay) {
+        let keyPressed = event.code;
+        let possibleNextMoves = possibleMoves();
+
+        // This code checks if we clicked button and the next direction is correct
+        // If we are moving and we click etc. Left where there is no wall, then we will clear interval and move there
+        // If there is a wall, then interval will remain ON
+
+        if (keyPressed == "KeyW" && possibleNextMoves.includes('UP') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+            rotatePacman(270)
+        }
+        else if (keyPressed == "KeyS" && possibleNextMoves.includes('DOWN') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+            rotatePacman(90)
+        }
+        else if (keyPressed == "KeyA" && possibleNextMoves.includes('LEFT') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+            rotatePacman(180)
+        }
+        else if (keyPressed == "KeyD" && possibleNextMoves.includes('RIGHT') && lockKey != keyPressed) {
+            clearPlayerInterval();
+            lockCurrentKey(keyPressed);
+            moveController(keyPressed);
+            rotatePacman(0)
+        }
+    }
+
+
+}, false);
 
 function start() {
 
@@ -789,20 +806,20 @@ function start() {
     generateGrid();
 
     // Ghost Red -- 10 -- starting Position on grid: 242
-    ghostRedElement = document.getElementById("ghostRed");
-    ghostRed = new Ghost(10, ghostRedElement, grid.indexOf(10), null, null, false, "red", [11, 12, 13], grid.indexOf(10), ghostRedElement.style.top, ghostRedElement.style.left)
+    let ghostRedElement = document.getElementById("ghostRed");
+    let ghostRed = new Ghost(10, ghostRedElement, grid.indexOf(10), null, null, false, "red", [11, 12, 13], grid.indexOf(10), ghostRedElement.style.top, ghostRedElement.style.left)
 
     // Ghost Blue - 11 -- starting Position on grid: 240
-    ghostBlueElement = document.getElementById("ghostBlue");
-    ghostBlue = new Ghost(11, ghostBlueElement, grid.indexOf(11), null, null, false, "blue", [10, 12, 13], grid.indexOf(11), ghostBlueElement.style.top, ghostBlueElement.style.left)
+    let ghostBlueElement = document.getElementById("ghostBlue");
+    let ghostBlue = new Ghost(11, ghostBlueElement, grid.indexOf(11), null, null, false, "blue", [10, 12, 13], grid.indexOf(11), ghostBlueElement.style.top, ghostBlueElement.style.left)
 
     // // Ghost Yellow - 12 -- starting Position on grid: 241
-    ghostYellowElement = document.getElementById("ghostYellow");
-    ghostYellow = new Ghost(12, ghostYellowElement, grid.indexOf(12), null, null, false, "yellow", [10, 11, 13], grid.indexOf(12), ghostYellowElement.style.top, ghostYellowElement.style.left)
+    let ghostYellowElement = document.getElementById("ghostYellow");
+    let ghostYellow = new Ghost(12, ghostYellowElement, grid.indexOf(12), null, null, false, "yellow", [10, 11, 13], grid.indexOf(12), ghostYellowElement.style.top, ghostYellowElement.style.left)
 
     // // Ghost Purple - 13 -- starting Position on grid: 178
-    ghostPurpleElement = document.getElementById("ghostPurple");
-    ghostPurple = new Ghost(13, ghostPurpleElement, grid.indexOf(13), null, null, false, "purple", [10, 11, 12], grid.indexOf(13), ghostPurpleElement.style.top, ghostPurpleElement.style.left)
+    let ghostPurpleElement = document.getElementById("ghostPurple");
+    let ghostPurple = new Ghost(13, ghostPurpleElement, grid.indexOf(13), null, null, false, "purple", [10, 11, 12], grid.indexOf(13), ghostPurpleElement.style.top, ghostPurpleElement.style.left)
 
 
     allGhosts = [ghostRed, ghostBlue, ghostYellow, ghostPurple]
@@ -812,7 +829,6 @@ function start() {
     player = document.getElementById("player");
     player.style.top = playerBaseTop;
     player.style.left = playerBaseLeft;
-
 
     canPlay = true;
 

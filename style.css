@@ -14,6 +14,7 @@ html {
     padding: 0;
 }
 
+/* All Animations  */
 @keyframes superPointBlink {
     0% {
         opacity: 1;
@@ -90,6 +91,21 @@ html {
     }
 }
 
+@keyframes titleBlink {
+    0% {
+        color: yellow;
+    }
+
+    50% {
+        color: #FFF;
+    }
+
+    100% {
+        color: yellow
+    }
+}
+
+/* Animation classes to toggle */
 .gotEatenFlash {
     animation: gotEatenFlash 1000ms;
     animation-iteration-count: 2;
@@ -100,6 +116,19 @@ html {
     animation-iteration-count: 3;
 }
 
+.player-animation {
+    animation: playerOnSuperBlink 500ms infinite;
+}
+
+.ghost-fadeOut {
+    animation: ghostFadeOut 1500ms forwards;
+}
+
+.ghost-fadeIn {
+    animation: ghostFadeIn 1500ms forwards;
+}
+
+/* Game over pop out container  */
 .gameover-wrapper {
     width: 100%;
     height: 100%;
@@ -151,6 +180,7 @@ html {
     cursor: pointer;
 }
 
+/* Main Container  */
 .container {
     width: 100%;
     height: 100%;
@@ -165,8 +195,6 @@ html {
     gap: 12px;
 }
 
-
-
 .title {
     font-size: 72px;
     font-weight: bold;
@@ -174,20 +202,6 @@ html {
     margin: 12px;
 
     text-shadow: 0px 0px 55px rgba(255, 255, 0, 0.5);
-}
-
-@keyframes titleBlink {
-    0% {
-        color: yellow;
-    }
-
-    50% {
-        color: #FFF;
-    }
-
-    100% {
-        color: yellow
-    }
 }
 
 .title span {
@@ -232,6 +246,7 @@ html {
     align-items: center;
 }
 
+/* Grid where we add all the blocks */
 .grid {
     width: 860px;
     height: 860px;
@@ -256,6 +271,8 @@ html {
     color: #FFF;
 }
 
+
+/* Player lives container  */
 .player-lives-container {
     min-width: 150px;
     height: 50px;
@@ -275,7 +292,7 @@ html {
     background-repeat: no-repeat;
 }
 
-/* Gird blocks types */
+/* ### Gird blocks types ### */
 .block {
     width: 40px;
     height: 40px;
@@ -298,6 +315,7 @@ html {
     position: absolute;
 }
 
+/* Point blocks  */
 .path-point {
     width: 7.5px;
     height: 7.5px;
@@ -326,6 +344,8 @@ html {
     animation: superPointBlink 1200ms infinite;
 }
 
+
+/* Player */
 .player-block {
     width: 35px;
     height: 35px;
@@ -348,18 +368,9 @@ html {
     z-index: 300;
 }
 
-.player-animation {
-    animation: playerOnSuperBlink 500ms infinite;
-}
 
-.ghost-fadeOut {
-    animation: ghostFadeOut 1500ms forwards;
-}
 
-.ghost-fadeIn {
-    animation: ghostFadeIn 1500ms forwards;
-}
-
+/* Ghots */
 .ghost {
     width: 50px;
     height: 45px;
