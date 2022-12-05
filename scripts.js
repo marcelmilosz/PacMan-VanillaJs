@@ -73,13 +73,26 @@ const playerLivesElement = document.getElementById("playerLives");
 
 let playerPoints = 0;
 const point = 10;
+let maxPointToGather = 0;
+let currentPointsGathered = 0;
+
 const superPoint = 100;
+let superTimeoutSeconds = 6;
+let isAlreadyOnSuper = false;
+let superIntervalOn = false;
+let superPointInterval;
 
 const INTERVAL_DELAY = 200;
 const directionKeys = ['KeyW', 'KeyS', 'KeyA', 'KeyD'];
 const directions = ['UP', 'DOWN', 'LEFT', 'RIGHT'];
 let highestScore;
 let highestScoreElement = document.getElementById("highestScore");
+let lastLevelScoredPoints;
+
+if (window.localStorage.getItem("lastScore")) {
+    playerPoints = parseInt(window.localStorage.getItem("lastScore"));
+    playerScoreElement.innerHTML = `Score: ${playerPoints}`;
+}
 
 if (!window.localStorage.getItem("highestScore")) {
     highestScore = 0;
@@ -147,6 +160,7 @@ function generateGrid() {
                 pathPoint = document.createElement("div");
                 pathPoint.classList.add("path-point");
                 block.appendChild(pathPoint);
+                maxPointToGather++;
                 break;
             case 2:
                 block.classList.add("path-block");
@@ -157,6 +171,7 @@ function generateGrid() {
                 pathPoint = document.createElement("div");
                 pathPoint.classList.add("path-superPoint");
                 block.appendChild(pathPoint);
+                maxPointToGather++;
                 break;
             case 9:
                 block.classList.add("player-block");
@@ -241,8 +256,6 @@ function updateScore(points) {
     playerPoints += points;
     playerScoreElement.innerHTML = `Score: ${playerPoints}`;
 }
-
-
 
 
 
@@ -405,10 +418,46 @@ function GameOver() {
 
 }
 
+function playerWonRestartMap() {
+
+    console.log("User won!");
+
+    canPlay = false;
+
+    clearAllGhostsInterval();
+    clearPlayerInterval();
+
+    restartAllGhostsPositions();
+    restartPlayerPosition();
+
+    // Flash board for 3 seconds 
+    gridElement.classList.add("boardFlash");
+
+    window.localStorage.setItem("lastScore", playerPoints);
+
+    if (playerPoints > highestScore) {
+        window.localStorage.setItem("highestScore", playerPoints)
+        highestScore = window.localStorage.getItem("highestScore");
+    }
+
+    highestScoreElement.innerHTML = `Highest Score: ${highestScore}`
+
+    setTimeout(function () {
+        document.location.reload();
+    }, 3000)
+
+
+}
+
 // Restart all after losing life
 function gotEatenRestartPositions() {
     clearPlayerInterval();
     clearAllGhostsInterval();
+
+    // flashy animation
+    gridElement.classList.add("gotEatenFlash");
+
+    canPlay = false;
 
     setTimeout(function () {
         // Sooo.. this function below has to be called two times and it gives me the result i need
@@ -417,13 +466,15 @@ function gotEatenRestartPositions() {
         restartAllGhostsPositions();
 
         restartPlayerPosition();
-    }, 400)
 
+        canPlay = true;
+    }, 2000)
 
 
     setTimeout(function () {
         ghostsController();
-    }, 1000)
+        gridElement.classList.remove("gotEatenFlash");
+    }, 2200)
 
 
     // start();
@@ -527,6 +578,10 @@ function ghostPlayerInteraction(ghostIdx) {
     }
 }
 
+function rotatePacman(deg) {
+    player.style.transform = `rotate(${deg}deg)`;
+}
+
 // This code adds eventListener that passes key press to moveController()
 document.addEventListener('keydown', (event) => {
 
@@ -539,6 +594,7 @@ document.addEventListener('keydown', (event) => {
     if (playerLives > 0 && canPlay) {
         let keyPressed = event.code;
         let possibleNextMoves = possibleMoves();
+
         // This code checks if we clicked button and the next direction is correct
         // If we are moving and we click etc. Left where there is no wall, then we will clear interval and move there
         // If there is a wall, then interval will remain ON
@@ -547,21 +603,25 @@ document.addEventListener('keydown', (event) => {
             clearPlayerInterval();
             lockCurrentKey(keyPressed);
             moveController(keyPressed);
+            rotatePacman(270)
         }
         else if (keyPressed == "KeyS" && possibleNextMoves.includes('DOWN') && lockKey != keyPressed) {
             clearPlayerInterval();
             lockCurrentKey(keyPressed);
             moveController(keyPressed);
+            rotatePacman(90)
         }
         else if (keyPressed == "KeyA" && possibleNextMoves.includes('LEFT') && lockKey != keyPressed) {
             clearPlayerInterval();
             lockCurrentKey(keyPressed);
             moveController(keyPressed);
+            rotatePacman(180)
         }
         else if (keyPressed == "KeyD" && possibleNextMoves.includes('RIGHT') && lockKey != keyPressed) {
             clearPlayerInterval();
             lockCurrentKey(keyPressed);
             moveController(keyPressed);
+            rotatePacman(0)
         }
     }
 
@@ -621,39 +681,49 @@ function gatherPoint() {
 
     // HERE We are adding points whether we step on normal or super point!
     if (currentPlayerPosition.firstChild) {
+        currentPointsGathered++;
+
         if (currentPlayerPosition.firstChild.classList.contains('path-point')) {
             updateScore(point)
+            currentPlayerPosition.removeChild(currentPlayerPosition.firstChild)
+
         }
 
         // Player ate super point!
-        // 6 seconds of power
-        if (currentPlayerPosition.firstChild.classList.contains('path-superPoint')) {
+        // 6 seconds of power or +6 seconds to current super point power
+        else if (currentPlayerPosition.firstChild.classList.contains('path-superPoint')) {
+
             updateScore(superPoint)
             playerState = "super";
+            currentPlayerPosition.removeChild(currentPlayerPosition.firstChild);
 
-            // if we already have super point 
-            // WORK ON IT NOW
-            // if (player.classList.contains("player-animation")) {
-            //     setTimeout(function () {
-            //         player.classList.toggle("player-animation");
-            //         playerState = "normal";
-            //     }, 6000)
-            // }
-            // else {
-            //     player.classList.toggle("player-animation");
-            //     setTimeout(function () {
-            //         player.classList.toggle("player-animation");
-            //         playerState = "normal";
-            //     }, 6000)
-            // }
+            if (!superIntervalOn) {
+                player.classList.toggle("player-animation")
+                superIntervalOn = true;
+
+                superPointInterval = setInterval(function () {
+                    superTimeoutSeconds--;
+
+                    if (superTimeoutSeconds == 0) {
+                        clearInterval(superPointInterval);
+                        superIntervalOn = false;
+                        playerState = "normal"
+                        player.classList.toggle("player-animation")
+                        superTimeoutSeconds = 6;
+                    }
+
+                }, 1000)
+            }
+            else if (superIntervalOn) {
+                superTimeoutSeconds += 6;
+            }
+
+        }
+
+        if (currentPointsGathered >= maxPointToGather) {
+            playerWonRestartMap()
         }
     }
-
-    // Removes Point or SuperPoint
-    if (currentPlayerPosition.firstChild) {
-        currentPlayerPosition.removeChild(currentPlayerPosition.firstChild)
-    }
-
 
 }
 

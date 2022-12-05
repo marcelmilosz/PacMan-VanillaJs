@@ -62,6 +62,44 @@ html {
     }
 }
 
+@keyframes boardFlash {
+    0% {
+        background-color: #111;
+    }
+
+    50% {
+        background-color: #0935e37e;
+    }
+
+    100% {
+        background-color: #111;
+    }
+}
+
+@keyframes gotEatenFlash {
+    0% {
+        background-color: #111;
+    }
+
+    50% {
+        background-color: #9f001391;
+    }
+
+    100% {
+        background-color: #111;
+    }
+}
+
+.gotEatenFlash {
+    animation: gotEatenFlash 1000ms;
+    animation-iteration-count: 2;
+}
+
+.boardFlash {
+    animation: boardFlash 1000ms;
+    animation-iteration-count: 3;
+}
+
 .gameover-wrapper {
     width: 100%;
     height: 100%;
@@ -74,7 +112,7 @@ html {
     top: 0;
     left: 0;
 
-    z-index: 300;
+    z-index: 500;
 }
 
 .gameover-container {
@@ -127,11 +165,42 @@ html {
     gap: 12px;
 }
 
+
+
 .title {
     font-size: 72px;
     font-weight: bold;
-    color: #FFF;
+    color: yellow;
     margin: 12px;
+
+    text-shadow: 0px 0px 55px rgba(255, 255, 0, 0.5);
+}
+
+@keyframes titleBlink {
+    0% {
+        color: yellow;
+    }
+
+    50% {
+        color: #FFF;
+    }
+
+    100% {
+        color: yellow
+    }
+}
+
+.title span {
+    animation: titleBlink 2000ms infinite;
+    transition: all 0ms;
+}
+
+.controlls {
+    font-size: 22px;
+    margin-bottom: 12px;
+    font-weight: bold;
+    color: #FFF;
+
 }
 
 .topbar {
@@ -169,8 +238,12 @@ html {
 
     background-color: #111;
 
-
     position: relative;
+
+    transition: backgroundColor 1000ms;
+
+    box-shadow: 0px 0px 128px 88px rgba(11, 84, 255, 0.2);
+    z-index: 1;
 }
 
 #playerScore {
@@ -184,10 +257,10 @@ html {
 }
 
 .player-lives-container {
-    width: 120px;
-    height: 30px;
+    min-width: 150px;
+    height: 50px;
     display: flex;
-    justify-content: left;
+    justify-content: center;
     align-items: center;
     gap: 12px;
 }
@@ -254,24 +327,29 @@ html {
 }
 
 .player-block {
-    width: 40px;
-    height: 40px;
+    width: 35px;
+    height: 35px;
 
-    background-color: yellow;
+    background: url('images/pac-man.gif');
+    background-size: contain;
+    background-color: transparent;
+    background-repeat: no-repeat;
 
     box-sizing: border-box;
     border-radius: 50px;
 
     position: absolute;
+    margin-top: 2.5px;
+    margin-left: 2.5px;
 
     transition: top 200ms, left 200ms;
     transition-timing-function: linear;
 
-    z-index: 150;
+    z-index: 300;
 }
 
 .player-animation {
-    animation: playerOnSuperBlink 1000ms infinite;
+    animation: playerOnSuperBlink 500ms infinite;
 }
 
 .ghost-fadeOut {
@@ -283,8 +361,8 @@ html {
 }
 
 .ghost {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 45px;
 
     box-sizing: border-box;
     border-radius: 50px;
@@ -298,21 +376,29 @@ html {
 }
 
 .ghost-red {
-    background-color: red;
+    background: url('images/ghostRed.png');
+    background-size: contain;
+    background-color: transparent;
+    background-repeat: no-repeat;
 }
 
 .ghost-blue {
-    background-color: blue;
+    background: url('images/ghostBlue.png');
+    background-size: contain;
+    background-color: transparent;
+    background-repeat: no-repeat;
 }
 
 .ghost-yellow {
-    background-color: gold;
+    background: url('images/ghostYellow.png');
+    background-size: contain;
+    background-color: transparent;
+    background-repeat: no-repeat;
 }
 
 .ghost-purple {
-    background-color: purple;
-}
-
-.red {
-    background-color: red;
+    background: url('images/ghostPurple.png');
+    background-size: contain;
+    background-color: transparent;
+    background-repeat: no-repeat;
 }
